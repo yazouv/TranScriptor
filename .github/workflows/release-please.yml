@@ -8,6 +8,7 @@ permissions:
   contents: write
   pull-requests: write
   id-token: write # required for npm provenance
+  packages: write # required for GitHub Packages
 
 jobs:
   release-please:
@@ -25,7 +26,7 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   publish:
-    name: Publish to npm
+    name: Publish
     needs: release-please
     # Only runs when release-please actually created a new release
     if: needs.release-please.outputs.release_created == 'true'
@@ -50,12 +51,33 @@ jobs:
       - name: Build
         run: bun run build
 
+      # ── Publish to npm (unscoped: transcriptor) ───────────────────────────
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Publish
+      - name: Publish to npm
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ── Publish to GitHub Packages (scoped: @yazouv/transcriptor) ─────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: '@yazouv'
+
+      - name: Publish to GitHub Packages
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.name = '@yazouv/transcriptor';
+            pkg.publishConfig = { registry: 'https://npm.pkg.github.com' };
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
