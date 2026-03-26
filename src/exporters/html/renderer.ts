@@ -1,6 +1,7 @@
 import { escHtml } from './template.js';
 import { formatBytes, formatDate, formatDateShort } from '../base.js';
 import { parseDiscordMarkdown } from '../../processors/markdown.js';
+import { renderComponentHtml } from '../../processors/component.js';
 import { AttachmentType, MessageType } from '../../types.js';
 import type {
   NormalizedAttachment,
@@ -110,7 +111,28 @@ function renderEmbed(embed: NormalizedEmbed): string {
     ? `<div class="embed-image"><img src="${escHtml(embed.image.resolvedUrl)}" alt="embed image" loading="lazy"></div>`
     : '';
 
-  const thumbnail = embed.thumbnail
+  // gifv = Tenor/Giphy animated GIFs (video field holds the .mp4 URL)
+  // video = YouTube/Twitch/etc. (show thumbnail with a link overlay)
+  let videoHtml = '';
+  if (embed.video) {
+    if (embed.type === 'gifv') {
+      videoHtml = `<div class="embed-video">
+        <video class="embed-gif" src="${escHtml(embed.video.resolvedUrl)}" autoplay loop muted playsinline
+          ${embed.video.width ? `width="${Math.min(embed.video.width, 520)}"` : ''}></video>
+      </div>`;
+    } else if (embed.thumbnail) {
+      // Rich video embed (YouTube etc.) — thumbnail + link
+      const href = embed.url ? escHtml(embed.url) : escHtml(embed.video.resolvedUrl);
+      videoHtml = `<div class="embed-video-thumb">
+        <a href="${href}" target="_blank" rel="noopener noreferrer">
+          <img src="${escHtml(embed.thumbnail.resolvedUrl)}" alt="video thumbnail" loading="lazy">
+          <div class="embed-video-play">▶</div>
+        </a>
+      </div>`;
+    }
+  }
+
+  const thumbnail = !embed.video && embed.thumbnail
     ? `<div class="embed-thumbnail"><img src="${escHtml(embed.thumbnail.resolvedUrl)}" alt="thumbnail" loading="lazy"></div>`
     : '';
 
@@ -124,7 +146,7 @@ function renderEmbed(embed: NormalizedEmbed): string {
 
   return `<div class="embed"${colorStyle}>
     <div class="embed-body">
-      ${author}${title}${description}${fields}${image}${footer}
+      ${author}${title}${description}${fields}${image}${videoHtml}${footer}
     </div>
     ${thumbnail}
   </div>`;
@@ -284,11 +306,16 @@ export async function renderMessageHtml(
     ? renderReactions(msg.reactions)
     : '';
 
+  // Components v2 (IsComponentsV2 flag — content/embeds empty, layout is in components)
+  const componentsHtml = msg.components.length > 0
+    ? (await Promise.all((msg.components as unknown[]).map((c) => renderComponentHtml(c)))).join('')
+    : '';
+
   return `<div class="message-group${continuation ? ' continuation' : ''}" id="msg-${escHtml(msg.id)}">
   ${continuationTs}
   ${leftCol}
   <div class="message-body">
-    ${replyHtml}${headerHtml}${contentHtml}${stickersHtml}${attachmentsHtml}${embedsHtml}${reactionsHtml}
+    ${replyHtml}${headerHtml}${contentHtml}${componentsHtml}${stickersHtml}${attachmentsHtml}${embedsHtml}${reactionsHtml}
   </div>
 </div>`;
 }

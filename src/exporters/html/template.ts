@@ -335,6 +335,91 @@ pre code.code-block {
   object-fit: contain;
 }
 
+/* ── Components v2 ── */
+.comp-container {
+  margin-top: 6px;
+  padding: 12px;
+  background: var(--embed-bg);
+  border-left: 4px solid var(--blockquote-bar);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.comp-text { color: var(--text-primary); line-height: 1.5; }
+.comp-text p { margin: 0; }
+.comp-section {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.comp-section-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.comp-section-accessory { flex-shrink: 0; }
+.comp-thumbnail img { width: 80px; height: 80px; border-radius: 4px; object-fit: cover; }
+.comp-separator--small { margin: 6px 0; border-color: var(--separator); }
+.comp-separator--large { margin: 12px 0; border-color: var(--separator); }
+.comp-spacer--small { height: 6px; }
+.comp-spacer--large { height: 16px; }
+.comp-media-gallery {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  max-width: 520px;
+}
+.comp-media-gallery--1 { grid-template-columns: 1fr; }
+.comp-media-gallery--2 { grid-template-columns: 1fr 1fr; }
+.comp-media-gallery--3 { grid-template-columns: 1fr 1fr; }
+.comp-media-gallery--3 .comp-media-item:first-child { grid-column: span 2; }
+.comp-media-gallery--4 { grid-template-columns: 1fr 1fr; }
+.comp-media-item img, .comp-media-item video {
+  width: 100%; border-radius: 4px; display: block; object-fit: cover;
+}
+.comp-media-caption { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.comp-file {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: var(--embed-bg);
+  border: 1px solid var(--embed-border);
+  border-radius: 4px;
+  color: var(--text-link);
+  text-decoration: none;
+  margin-top: 4px;
+}
+.comp-file:hover { text-decoration: underline; }
+.comp-action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.comp-button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 16px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: default;
+}
+.comp-button--link {
+  background: var(--brand);
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+.comp-button--link:hover { background: #4752c4; text-decoration: none; }
+.comp-btn-emoji { width: 16px; height: 16px; vertical-align: middle; }
+
+/* Discord headings (## / ###) inside messages and TextDisplay */
+.discord-heading {
+  font-weight: 700;
+  line-height: 1.375;
+  margin: 8px 0 4px;
+  color: var(--text-primary);
+}
+h1.discord-heading { font-size: 1.5em; }
+h2.discord-heading { font-size: 1.25em; }
+h3.discord-heading { font-size: 1em; }
+
 /* ── Attachments ── */
 .attachments { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
 
@@ -453,6 +538,32 @@ audio.attachment-audio { display: block; max-width: 400px; margin-top: 4px; }
   border-radius: 4px;
   object-fit: contain;
   display: block;
+}
+.embed-video { margin-top: 8px; }
+.embed-gif {
+  max-width: 520px;
+  max-height: 300px;
+  border-radius: 4px;
+  display: block;
+}
+.embed-video-thumb { margin-top: 8px; position: relative; display: inline-block; }
+.embed-video-thumb img {
+  max-width: 520px;
+  max-height: 300px;
+  border-radius: 4px;
+  display: block;
+}
+.embed-video-play {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 28px;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
 }
 
 .embed-footer {

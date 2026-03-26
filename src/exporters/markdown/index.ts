@@ -1,5 +1,6 @@
 import { BaseExporter, formatBytes, formatDate, formatDateShort } from '../base.js';
 import { stripDiscordMarkdown } from '../../processors/markdown.js';
+import { renderComponentText } from '../../processors/component.js';
 import { MessageType } from '../../types.js';
 import type { NormalizedAttachment, NormalizedEmbed, NormalizedMessage, NormalizedReaction } from '../../types.js';
 import { AttachmentType } from '../../types.js';
@@ -56,17 +57,22 @@ function renderEmbedMd(embed: NormalizedEmbed): string {
     lines.push(`> ${title}`);
   }
   if (embed.description) {
-    // Indent each line of the description
     const desc = embed.description
-      .slice(0, 300)
       .split('\n')
       .map((l) => `> ${l}`)
       .join('\n');
     lines.push(desc);
-    if (embed.description.length > 300) lines.push('> *…*');
   }
   for (const field of embed.fields) {
     lines.push(`> **${mdEscape(field.name)}**: ${field.value}`);
+  }
+  if (embed.video) {
+    if (embed.type === 'gifv') {
+      lines.push(`> 🎞️ *[Animated GIF](${embed.video.resolvedUrl})*`);
+    } else if (embed.thumbnail) {
+      const href = embed.url ?? embed.video.resolvedUrl;
+      lines.push(`> [![video thumbnail](${embed.thumbnail.resolvedUrl})](${href})`);
+    }
   }
   if (embed.image) {
     lines.push(`> ![embed image](${embed.image.resolvedUrl})`);
@@ -157,6 +163,13 @@ export class MarkdownExporter extends BaseExporter {
     if (msg.content) {
       const plain = await stripDiscordMarkdown(msg.content);
       lines.push(plain);
+    }
+
+    // Components v2
+    if (msg.components.length > 0) {
+      const parts = await Promise.all((msg.components as unknown[]).map((c) => renderComponentText(c)));
+      const text = parts.join('\n').trim();
+      if (text) lines.push(text);
     }
 
     // Stickers
