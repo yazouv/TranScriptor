@@ -60,16 +60,16 @@
   },
   "devDependencies": {
     "@types/archiver": "^7.0.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.5.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "archiver": "^7.0.0",
     "discord.js": "^14.16.0",
     "eslint": "^9.0.0",
     "jiti": "^2.6.1",
-    "sharp": "^0.33.0",
+    "sharp": "^0.34.5",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
-    "vitest": "^2.0.0"
+    "vitest": "^4.1.2"
   }
 }

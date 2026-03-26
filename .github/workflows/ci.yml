@@ -14,8 +14,8 @@ jobs:
   check:
     name: Typecheck, Lint & Test
     runs-on: ubuntu-latest
-    # Skip on release-please branches — they only contain CHANGELOG and version bumps
-    if: "!startsWith(github.head_ref, 'release-please--')"
+    # Skip on release-please and dependabot branches — only dep bumps or version bumps
+    if: "!startsWith(github.head_ref, 'release-please--') && !startsWith(github.head_ref, 'dependabot/')"
 
     steps:
       - uses: actions/checkout@v4
@@ -38,10 +38,10 @@ jobs:
 
   # Required to satisfy the branch protection status check on release-please PRs.
   # Both jobs share the same name so GitHub matches either one.
-  skip-for-release-please:
+  skip-for-bots:
     name: Typecheck, Lint & Test
     runs-on: ubuntu-latest
-    if: "startsWith(github.head_ref, 'release-please--')"
+    if: "startsWith(github.head_ref, 'release-please--') || startsWith(github.head_ref, 'dependabot/')"
 
     steps:
-      - run: echo "Release-please PR — CI skipped (CHANGELOG and version bump only)"
+      - run: echo "Bot PR (release-please / dependabot) — CI skipped"
