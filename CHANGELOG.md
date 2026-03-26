@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.3.0...transcriptor-v0.3.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* undefined array access in renderNodes (strict noUncheckedIndexedAccess) ([a6b8f7c](https://github.com/yazouv/TranScriptor/commit/a6b8f7c22a021bd4788c5b7a519c3004746db840))
+
 ## [0.3.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.2.2...transcriptor-v0.3.0) (2026-03-26)
 
 
