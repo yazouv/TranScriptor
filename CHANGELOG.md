@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.2.0...transcriptor-v0.2.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* test publish workflow ([f6020fb](https://github.com/yazouv/TranScriptor/commit/f6020fba9b12e479e57bbb35b751f15ab7885a36))
+
 ## [0.2.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.1.0...transcriptor-v0.2.0) (2026-03-26)
 
 
