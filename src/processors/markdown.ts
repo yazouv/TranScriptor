@@ -43,9 +43,43 @@ function escape(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * Renders an array of nodes to HTML, merging the 5-node masked-link pattern:
+ *   text("[display")  text("]")  text("(")  url  text(")")
+ * into a single <a> element, since discord-markdown-parser doesn't produce
+ * a unified link node for Discord's [text](url) format.
+ */
+function renderNodes(nodes: MarkdownNode[]): string {
+  const out: string[] = [];
+  let i = 0;
+  while (i < nodes.length) {
+    // Detect: text("[...") + text("]") + text("(") + url + text(")")
+    if (
+      i + 4 < nodes.length &&
+      nodes[i].type === 'text' &&
+      typeof nodes[i].content === 'string' &&
+      (nodes[i].content as string).startsWith('[') &&
+      nodes[i + 1].type === 'text' && nodes[i + 1].content === ']' &&
+      nodes[i + 2].type === 'text' && nodes[i + 2].content === '(' &&
+      nodes[i + 3].type === 'url' &&
+      nodes[i + 4].type === 'text' && nodes[i + 4].content === ')'
+    ) {
+      const displayText = escape((nodes[i].content as string).slice(1)); // strip leading [
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const href = escape(String((nodes[i + 3] as any).target ?? nodes[i + 3].content ?? ''));
+      out.push(`<a href="${href}" target="_blank" rel="noopener noreferrer">${displayText}</a>`);
+      i += 5;
+      continue;
+    }
+    out.push(nodeToHTML(nodes[i]));
+    i++;
+  }
+  return out.join('');
+}
+
 function nodeToHTML(node: MarkdownNode): string {
   const inner = Array.isArray(node.content)
-    ? node.content.map(nodeToHTML).join('')
+    ? renderNodes(node.content)
     : escape(String(node.content ?? ''));
 
   switch (node.type) {
@@ -81,8 +115,27 @@ function nodeToHTML(node: MarkdownNode): string {
 
     case 'url':
     case 'autolink': {
-      const href = escape(String(node.content ?? ''));
-      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${href}</a>`;
+      // content may be a string (plain URL) or an array of child nodes (masked link)
+      const href = typeof node.content === 'string'
+        ? escape(node.content)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        : escape(String((node as any).target ?? (node as any).url ?? ''));
+      const display = inner || href;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${display}</a>`;
+    }
+
+    // Discord masked links: [display text](url)
+    case 'link': {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const href = escape(String((node as any).target ?? (node as any).url ?? ''));
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${inner}</a>`;
+    }
+
+    // Discord headings (##, ###)
+    case 'heading': {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const level = Math.min(Math.max(Number((node as any).level ?? 2), 1), 3);
+      return `<h${level} class="discord-heading">${inner}</h${level}>`;
     }
 
     case 'br':
@@ -113,8 +166,9 @@ function nodeToHTML(node: MarkdownNode): string {
     }
 
     // Unicode emoji — let the browser render it natively
+    // Note: discord-markdown-parser stores the emoji character in `name`, not `content`
     case 'twemoji':
-      return `<span class="emoji">${escape(String(node.content ?? ''))}</span>`;
+      return `<span class="emoji">${escape(String(node.name ?? node.content ?? ''))}</span>`;
 
     // Discord timestamp <t:unix:format>
     case 'timestamp': {
@@ -140,7 +194,7 @@ export async function parseDiscordMarkdown(content: string): Promise<string> {
   try {
     const parse = await getParser();
     const nodes = parse(content);
-    return nodes.map(nodeToHTML).join('');
+    return renderNodes(nodes);
   } catch {
     // If parsing fails for any reason, return escaped plain text
     return escape(content);
