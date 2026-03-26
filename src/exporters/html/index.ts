@@ -1,6 +1,6 @@
 import { BaseExporter, formatDateShort, type ChannelInfo } from '../base.js';
 import { buildHtmlShell, escHtml } from './template.js';
-import { renderMessageHtml, isContinuation } from './renderer.js';
+import { renderMessageHtml } from './renderer.js';
 import type { NormalizedMessage, TranscriptOptions } from '../../types.js';
 
 export class HtmlExporter extends BaseExporter {

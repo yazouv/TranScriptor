@@ -217,7 +217,8 @@ export class MediaManager {
     const zipPath = `${sourcePath}.zip`;
     const output = createWriteStream(zipPath);
     // archiver may be a CJS default export or ESM default
-    const createArchive: typeof import('archiver') = archiverMod.default ?? archiverMod;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const createArchive: any = archiverMod.default ?? archiverMod;
     const archive = createArchive('zip', { zlib: { level: 6 } });
 
     await new Promise<void>((resolve, reject) => {

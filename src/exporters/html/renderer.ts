@@ -212,7 +212,6 @@ export async function renderMessageHtml(
   options: TranscriptOptions,
 ): Promise<string> {
   const strategy = options.media?.strategy;
-  const parts: string[] = [];
 
   // System message
   if (msg.type === MessageType.System && msg.systemContent) {

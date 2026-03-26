@@ -1,9 +1,9 @@
-import { Readable, PassThrough } from 'node:stream';
+import type { Readable } from 'node:stream';
+import { PassThrough } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { IExporter, NormalizedMessage, TranscriptOptions } from '../types.js';
-import { ExportFormat, OutputType } from '../types.js';
 
 // Minimal channel shape needed by exporters
 export interface ChannelInfo {

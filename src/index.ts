@@ -1,9 +1,6 @@
-import { Readable } from 'node:stream';
-import { createWriteStream, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { pipeline } from 'node:stream/promises';
+import type { Readable } from 'node:stream';
 import { fetchMessages } from './fetcher/index.js';
-import { chunk, chunkArray } from './fetcher/chunker.js';
+import { chunk } from './fetcher/chunker.js';
 import { normalizeMessage } from './processors/message.js';
 import { MediaManager } from './media/index.js';
 import type {
