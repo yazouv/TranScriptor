@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.2.1...transcriptor-v0.2.2) (2026-03-26)
+
+
+### Bug Fixes
+
+* add repository field to fix npm provenance E422 ([3af38d0](https://github.com/yazouv/TranScriptor/commit/3af38d09762fbd71f0464dd71193e89a00674406))
+
 ## [0.2.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.2.0...transcriptor-v0.2.1) (2026-03-26)
 
 
