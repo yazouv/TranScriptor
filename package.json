@@ -35,6 +35,14 @@
     "discord.js"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yazouv/TranScriptor.git"
+  },
+  "homepage": "https://github.com/yazouv/TranScriptor",
+  "bugs": {
+    "url": "https://github.com/yazouv/TranScriptor/issues"
+  },
   "peerDependencies": {
     "discord.js": "^14.0.0 || ^15.0.0"
   },
