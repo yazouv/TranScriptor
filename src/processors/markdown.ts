@@ -54,24 +54,30 @@ function renderNodes(nodes: MarkdownNode[]): string {
   let i = 0;
   while (i < nodes.length) {
     // Detect: text("[...") + text("]") + text("(") + url + text(")")
+    const n0 = nodes[i];
+    const n1 = nodes[i + 1];
+    const n2 = nodes[i + 2];
+    const n3 = nodes[i + 3];
+    const n4 = nodes[i + 4];
     if (
-      i + 4 < nodes.length &&
-      nodes[i].type === 'text' &&
-      typeof nodes[i].content === 'string' &&
-      (nodes[i].content as string).startsWith('[') &&
-      nodes[i + 1].type === 'text' && nodes[i + 1].content === ']' &&
-      nodes[i + 2].type === 'text' && nodes[i + 2].content === '(' &&
-      nodes[i + 3].type === 'url' &&
-      nodes[i + 4].type === 'text' && nodes[i + 4].content === ')'
+      n0 !== undefined && n1 !== undefined && n2 !== undefined &&
+      n3 !== undefined && n4 !== undefined &&
+      n0.type === 'text' &&
+      typeof n0.content === 'string' &&
+      (n0.content as string).startsWith('[') &&
+      n1.type === 'text' && n1.content === ']' &&
+      n2.type === 'text' && n2.content === '(' &&
+      n3.type === 'url' &&
+      n4.type === 'text' && n4.content === ')'
     ) {
-      const displayText = escape((nodes[i].content as string).slice(1)); // strip leading [
+      const displayText = escape((n0.content as string).slice(1)); // strip leading [
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const href = escape(String((nodes[i + 3] as any).target ?? nodes[i + 3].content ?? ''));
+      const href = escape(String((n3 as any).target ?? n3.content ?? ''));
       out.push(`<a href="${href}" target="_blank" rel="noopener noreferrer">${displayText}</a>`);
       i += 5;
       continue;
     }
-    out.push(nodeToHTML(nodes[i]));
+    if (n0 !== undefined) out.push(nodeToHTML(n0));
     i++;
   }
   return out.join('');
