@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.2.2...transcriptor-v0.3.0) (2026-03-26)
+
+
+### Features
+
+* Components v2 (TextDisplay, MediaGallery, Container…) and gifv/video embed rendering ([98b620b](https://github.com/yazouv/TranScriptor/commit/98b620b51973f1af1b2f83fe47f8ceff79739765))
+
+
+### Bug Fixes
+
+* correct message order by reversing batches instead of flat buffer ([14a4163](https://github.com/yazouv/TranScriptor/commit/14a41634bf71dc250a5380792bd40515e0442e10))
+* markdown parser — twemoji name field, heading, masked links [text](url) ([c994ad3](https://github.com/yazouv/TranScriptor/commit/c994ad31095467dd362d967e3f7b23209201b941))
+* resolve downloaded asset paths relative to HTML output directory ([866a8d9](https://github.com/yazouv/TranScriptor/commit/866a8d98ab6931df3f6f248ee279c2c9e7727f09))
+
 ## [0.2.2](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.2.1...transcriptor-v0.2.2) (2026-03-26)
 
 
