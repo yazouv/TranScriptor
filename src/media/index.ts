@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { AttachmentType, MediaStrategy } from '../types.js';
 import type {
   MediaManifest,
@@ -89,7 +89,12 @@ export class MediaManager {
           makeManifestEntry(url, result.localPath, result.filename, type, finalSize, compressed),
         );
 
-        return result.localPath; // local path — relative reference in HTML
+        // Return a path relative to the HTML output directory so the browser
+        // can resolve it correctly regardless of where the file is opened from.
+        const outputDir = this.transcriptOpts.outputPath ?? '.';
+        const relPath = relative(resolve(outputDir), resolve(result.localPath));
+        // Use forward slashes for HTML src compatibility on all platforms
+        return relPath.replace(/\\/g, '/');
       }
 
       case MediaStrategy.Inline:
