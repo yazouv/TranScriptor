@@ -25,8 +25,9 @@ export async function* fetchMessages(
 
   let lastId: string | undefined;
   let totalFetched = 0;
-  // Buffer accumulates all pages before yielding in chronological order
-  const buffer: RawMessage[] = [];
+  // Batches are fetched newest-to-oldest; collect them and reverse at the batch level
+  // so within-batch order (oldest→newest) is preserved after the reversal.
+  const batches: RawMessage[][] = [];
 
   while (true) {
     const remaining = unlimited
@@ -56,7 +57,7 @@ export async function* fetchMessages(
       (a: RawMessage, b: RawMessage) => Number(BigInt(a.id) - BigInt(b.id)),
     );
 
-    buffer.push(...sorted);
+    batches.push(sorted);
     totalFetched += fetched.size;
     // Use the oldest message in this batch as the cursor for the next page
     lastId = sorted[0]?.id;
@@ -70,11 +71,12 @@ export async function* fetchMessages(
     if (fetched.size < remaining) break; // Last page reached
   }
 
-  // Batches were fetched newest-to-oldest, so reverse to get chronological order
-  buffer.reverse();
-
-  for (const msg of buffer) {
-    if (filter && !filter(msg)) continue;
-    yield msg;
+  // Reverse batch order: batches[0] was the most recent page, batches[last] the oldest.
+  // After reversal, we yield oldest batch first, preserving within-batch chronological order.
+  for (const batch of batches.reverse()) {
+    for (const msg of batch) {
+      if (filter && !filter(msg)) continue;
+      yield msg;
+    }
   }
 }
