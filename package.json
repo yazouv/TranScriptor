@@ -1,6 +1,6 @@
 {
   "name": "transcriptor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Export Discord channels to HTML, Markdown, or TXT transcripts — optimized for large volumes.",
   "type": "module",
   "main": "./dist/index.cjs",
