@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.4.0...transcriptor-v0.4.1) (2026-04-03)
+
+
+### Bug Fixes
+
+* corrige les erreurs de validation dans le formulaire d'inscription ([821eb2f](https://github.com/yazouv/TranScriptor/commit/821eb2f5661c4d869c7996ba8c371d28c59bd873))
+* mettre à jour les dépendances pour améliorer la compatibilité et la sécurité ([e9437d1](https://github.com/yazouv/TranScriptor/commit/e9437d183c1fd1b4ca2ae0b8499b0e4680f229d1))
+
 ## [0.4.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.3.1...transcriptor-v0.4.0) (2026-04-03)
 
 
