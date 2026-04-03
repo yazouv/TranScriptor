@@ -1,8 +1,13 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { extname } from 'node:path';
 
 export interface OptimizeOptions {
   quality: number; // 1–100
+}
+
+export interface CompressResult {
+  size: number;
+  newPath: string;
 }
 
 // Image types that can be compressed to WebP
@@ -30,8 +35,12 @@ export async function isSharpAvailable(): Promise<boolean> {
 }
 
 /**
- * Compresses an image file to WebP in-place.
- * Returns the new file size in bytes, or null if compression was skipped.
+ * Compresses an image file to WebP.
+ * Returns the new size and final path, or null if compression was skipped.
+ *
+ * When compression reduces file size, the original file is replaced by a
+ * `.webp` file at `newPath` (extension changed). When WebP would be larger,
+ * the original file is left untouched and `newPath` equals `filePath`.
  *
  * Skips silently if:
  * - The file extension is not compressible
@@ -40,7 +49,7 @@ export async function isSharpAvailable(): Promise<boolean> {
 export async function tryCompress(
   filePath: string,
   opts: OptimizeOptions,
-): Promise<number | null> {
+): Promise<CompressResult | null> {
   const ext = extname(filePath).toLowerCase();
   if (!COMPRESSIBLE_EXTS.has(ext)) return null;
 
@@ -61,11 +70,15 @@ export async function tryCompress(
 
     // Only replace if WebP is actually smaller
     if (output.length < input.length) {
-      await writeFile(filePath, output);
-      return output.length;
+      const newPath = filePath.replace(/\.[^.]+$/, '.webp');
+      await writeFile(newPath, output);
+      // Remove the original file if the path changed (e.g. .png → .webp)
+      if (newPath !== filePath) await unlink(filePath);
+      return { size: output.length, newPath };
     }
 
-    return input.length;
+    // WebP would be larger — leave original untouched
+    return { size: input.length, newPath: filePath };
   } catch {
     // Non-fatal — return null to indicate no compression happened
     return null;

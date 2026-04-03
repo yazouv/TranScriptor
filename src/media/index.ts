@@ -72,27 +72,29 @@ export class MediaManager {
         const result = await this.downloader!.download(url);
         if (!result) return url; // fallback to original on failure
 
+        let localPath = result.localPath;
         let finalSize = result.sizeBytes;
         let compressed = false;
 
         if (this.opts.compress) {
-          const newSize = await tryCompress(result.localPath, {
+          const compressResult = await tryCompress(localPath, {
             quality: this.opts.compressQuality ?? 80,
           });
-          if (newSize !== null) {
-            finalSize = newSize;
-            compressed = true;
+          if (compressResult !== null) {
+            finalSize = compressResult.size;
+            compressed = compressResult.newPath !== localPath;
+            localPath = compressResult.newPath;
           }
         }
 
         this.manifest.add(
-          makeManifestEntry(url, result.localPath, result.filename, type, finalSize, compressed),
+          makeManifestEntry(url, localPath, result.filename, type, finalSize, compressed),
         );
 
         // Return a path relative to the HTML output directory so the browser
         // can resolve it correctly regardless of where the file is opened from.
         const outputDir = this.transcriptOpts.outputPath ?? '.';
-        const relPath = relative(resolve(outputDir), resolve(result.localPath));
+        const relPath = relative(resolve(outputDir), resolve(localPath));
         // Use forward slashes for HTML src compatibility on all platforms
         return relPath.replace(/\\/g, '/');
       }
@@ -102,11 +104,18 @@ export class MediaManager {
         const result = await this.downloader!.download(url);
         if (!result) return url;
 
+        let localPath = result.localPath;
+        let resolvedContentType = result.contentType ?? contentType;
+
         if (this.opts.compress) {
-          await tryCompress(result.localPath, { quality: this.opts.compressQuality ?? 80 });
+          const compressResult = await tryCompress(localPath, { quality: this.opts.compressQuality ?? 80 });
+          if (compressResult !== null) {
+            localPath = compressResult.newPath;
+            if (localPath.endsWith('.webp')) resolvedContentType = 'image/webp';
+          }
         }
 
-        return toBase64DataUri(result.localPath, result.contentType ?? contentType);
+        return toBase64DataUri(localPath, resolvedContentType);
       }
 
       default:
