@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.3.1...transcriptor-v0.4.0) (2026-04-03)
+
+
+### Features
+
+* améliorer la gestion des médias avec compression et mise à jour des chemins locaux ([8415af0](https://github.com/yazouv/TranScriptor/commit/8415af0698e42e1dfb3f273ec1d8faa2f8e3b0e4))
+
 ## [0.3.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.3.0...transcriptor-v0.3.1) (2026-03-26)
 
 
