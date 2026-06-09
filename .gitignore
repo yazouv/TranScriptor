@@ -11,4 +11,5 @@ coverage/
 .vitest-cache/
 exports/
 assets/
+showcase/
 .claude/
