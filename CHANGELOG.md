@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.5.0...transcriptor-v0.6.0) (2026-06-09)
+
+
+### Features
+
+* add thread transcription support via include.threads option ([35c783c](https://github.com/yazouv/TranScriptor/commit/35c783cdad9ba141f3c7164006985b63e176a446))
+
 ## [0.5.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.4.1...transcriptor-v0.5.0) (2026-04-03)
 
 
