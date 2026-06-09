@@ -68,6 +68,7 @@ function base(overrides: Partial<NormalizedMessage>): NormalizedMessage {
     replyTo: null,
     pinned: false,
     threadId: null,
+    threadName: null,
     components: [],
     systemContent: null,
     ...overrides,
@@ -235,6 +236,31 @@ export const MSG_NEXT_DAY = base({
   timestamp: new Date('2024-06-16T08:00:00.000Z'),
 });
 
+// Thread messages
+export const MSG_THREAD_ALICE = base({
+  author: USER_ALICE,
+  content: 'This is a thread reply from Alice.',
+  timestamp: ts(90),
+  threadId: 'thread-001',
+  threadName: 'Project Discussion',
+});
+
+export const MSG_THREAD_BOB = base({
+  author: USER_BOB,
+  content: 'And this is Bob replying in the same thread.',
+  timestamp: ts(91),
+  threadId: 'thread-001',
+  threadName: 'Project Discussion',
+});
+
+export const MSG_THREAD2_ALICE = base({
+  author: USER_ALICE,
+  content: 'Message in a second thread.',
+  timestamp: ts(100),
+  threadId: 'thread-002',
+  threadName: 'Off-topic',
+});
+
 /** Full fixture set in chronological order */
 export const ALL_MESSAGES: NormalizedMessage[] = [
   MSG_PLAIN,
@@ -250,6 +276,9 @@ export const ALL_MESSAGES: NormalizedMessage[] = [
   MSG_SYSTEM_JOIN,
   MSG_EDITED,
   MSG_NEXT_DAY,
+  MSG_THREAD_ALICE,
+  MSG_THREAD_BOB,
+  MSG_THREAD2_ALICE,
 ];
 
 /** Minimal channel info for tests */

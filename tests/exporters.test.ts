@@ -14,6 +14,9 @@ import {
   MSG_WITH_EMBED,
   MSG_SYSTEM_JOIN,
   MSG_WITH_FILE,
+  MSG_THREAD_ALICE,
+  MSG_THREAD_BOB,
+  MSG_THREAD2_ALICE,
   TEST_CHANNEL,
 } from './fixtures/messages.js';
 
@@ -285,5 +288,68 @@ describe('HtmlExporter', () => {
     // The patch script updates the count badge
     expect(out).toContain('message-count');
     expect(out).toMatch(/\d+ messages/);
+  });
+});
+
+// ─── Thread separator ─────────────────────────────────────────────────────────
+
+const THREAD_MESSAGES = [MSG_PLAIN, MSG_THREAD_ALICE, MSG_THREAD_BOB, MSG_THREAD2_ALICE];
+
+async function exportThread(
+  ExporterClass: typeof TxtExporter | typeof MarkdownExporter | typeof HtmlExporter,
+  opts: TranscriptOptions,
+): Promise<string> {
+  const exporter = new ExporterClass(TEST_CHANNEL, opts);
+  return exporter.toString(async function* () { yield THREAD_MESSAGES; }());
+}
+
+describe('Thread separator — TxtExporter', () => {
+  it('renders thread name in separator', async () => {
+    const out = await exportThread(TxtExporter, { ...BASE_OPTS, format: ExportFormat.TXT });
+    expect(out).toContain('Project Discussion');
+    expect(out).toContain('Off-topic');
+  });
+
+  it('renders thread messages content', async () => {
+    const out = await exportThread(TxtExporter, { ...BASE_OPTS, format: ExportFormat.TXT });
+    expect(out).toContain('thread reply from Alice');
+    expect(out).toContain('Bob replying in the same thread');
+  });
+
+  it('renders two separate separators for two different threads', async () => {
+    const out = await exportThread(TxtExporter, { ...BASE_OPTS, format: ExportFormat.TXT });
+    const matches = [...out.matchAll(/Thread:/g)];
+    expect(matches.length).toBe(2);
+  });
+});
+
+describe('Thread separator — MarkdownExporter', () => {
+  it('renders thread separator as ## heading', async () => {
+    const out = await exportThread(MarkdownExporter, { ...BASE_OPTS, format: ExportFormat.Markdown });
+    expect(out).toContain('## 🧵 Thread: Project Discussion');
+    expect(out).toContain('## 🧵 Thread: Off-topic');
+  });
+
+  it('resets author grouping at thread boundary', async () => {
+    // Alice sends MSG_PLAIN (main) then MSG_THREAD_ALICE — both are from Alice
+    // but the thread separator should reset grouping, so Alice's header appears in thread too
+    const out = await exportThread(MarkdownExporter, { ...BASE_OPTS, format: ExportFormat.Markdown });
+    const aliceHeaders = [...out.matchAll(/\*\*Alice\*\*/g)];
+    expect(aliceHeaders.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('Thread separator — HtmlExporter', () => {
+  it('renders thread-separator div with thread name', async () => {
+    const out = await exportThread(HtmlExporter, { ...BASE_OPTS, format: ExportFormat.HTML });
+    expect(out).toContain('class="thread-separator"');
+    expect(out).toContain('Project Discussion');
+    expect(out).toContain('Off-topic');
+  });
+
+  it('renders two thread separators for two threads', async () => {
+    const out = await exportThread(HtmlExporter, { ...BASE_OPTS, format: ExportFormat.HTML });
+    const matches = [...out.matchAll(/class="thread-separator"/g)];
+    expect(matches.length).toBe(2);
   });
 });
