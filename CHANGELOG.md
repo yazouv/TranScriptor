@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.7.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.6.0...transcriptor-v0.7.0) (2026-06-09)
+
+
+### Features
+
+* **html:** replace thread inline separators with Discord-style tab navigation ([92b09db](https://github.com/yazouv/TranScriptor/commit/92b09dbd050f84e4858c347df4a1ab23dd8a51c0))
+
+
+### Bug Fixes
+
+* resolve TypeScript 6 build errors and remove undici dependency ([92a1ccb](https://github.com/yazouv/TranScriptor/commit/92a1ccb409fb9434fa6e9f898e9a18fc6f68348d))
+
+
+### Performance
+
+* **html:** minify inline CSS, JS and HTML shell at generation time ([9e0f73a](https://github.com/yazouv/TranScriptor/commit/9e0f73af859aade11d718d241d85f3b07b3044d6))
+
 ## [0.6.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.5.0...transcriptor-v0.6.0) (2026-06-09)
 
 
