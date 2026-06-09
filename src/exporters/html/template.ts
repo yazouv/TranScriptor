@@ -3,6 +3,34 @@
  * Inspired by Discord's UI — dark theme with CSS variables for light mode support.
  */
 
+// ─── Minifiers ────────────────────────────────────────────────────────────────
+
+function minifyCss(css: string): string {
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, '')      // strip /* … */ comments
+    .replace(/\s+/g, ' ')                   // collapse whitespace
+    .replace(/\s*([{}:;,>~+])\s*/g, '$1')  // remove spaces around punctuation
+    .replace(/;}/g, '}')                    // drop trailing semicolons
+    .trim();
+}
+
+function minifyJs(js: string): string {
+  return js
+    .replace(/\/\/[^\n]*/g, '') // strip // comments
+    .replace(/\s+/g, ' ')       // collapse whitespace
+    .trim();
+}
+
+function compactHtml(html: string): string {
+  return html
+    .replace(/<!--[\s\S]*?-->/g, '') // strip HTML comments
+    .replace(/[ \t]+/g, ' ')         // collapse inline whitespace
+    .replace(/\n\s*/g, '')           // remove newlines + indentation
+    .trim();
+}
+
+// ─── Source strings (readable) ────────────────────────────────────────────────
+
 export const CSS = `
 :root {
   --bg-primary: #313338;
@@ -733,6 +761,13 @@ document.querySelectorAll('[data-goto]').forEach(el => {
 })();
 `;
 
+// ─── Pre-minified assets (computed once at module load) ───────────────────────
+
+const MIN_CSS = minifyCss(CSS);
+const MIN_JS = minifyJs(CLIENT_SCRIPT);
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function buildHtmlShell(
   channelName: string,
   guildName: string,
@@ -744,15 +779,13 @@ export function buildHtmlShell(
     ? `<img class="guild-icon" src="${guildIconURL}" alt="${escHtml(guildName)}" loading="lazy">`
     : `<div class="guild-icon" style="background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:18px;">💬</div>`;
 
-  // The header opens the main section div; sections are closed by the exporter
-  // (renderThreadSeparator closes the previous section, renderFooter closes the last one)
-  const header = `<!DOCTYPE html>
+  const header = compactHtml(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>#${escHtml(channelName)} — ${escHtml(guildName)}</title>
-  <style>${CSS}</style>
+  <style>${MIN_CSS}</style>
 </head>
 <body>
 <div id="lightbox"><img src="" alt=""></div>
@@ -772,15 +805,10 @@ export function buildHtmlShell(
   </nav>
 </header>
 <div class="transcript">
-<div id="section-main" class="transcript-section">
-`;
+<div id="section-main" class="transcript-section">`) + '\n';
 
   // footer only closes .transcript; the last section is closed by HtmlExporter.renderFooter
-  const footer = `</div>
-<footer class="transcript-footer">${escHtml(footerText)}</footer>
-<script>${CLIENT_SCRIPT}</script>
-</body>
-</html>`;
+  const footer = `</div><footer class="transcript-footer">${escHtml(footerText)}</footer><script>${MIN_JS}</script></body></html>`;
 
   return { header, footer };
 }
