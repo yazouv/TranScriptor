@@ -63,8 +63,8 @@ Le `MediaManager` déduplique les URLs avant téléchargement et respecte `media
 ## Commandes utiles
 
 ```bash
-pnpm build        # Compile TypeScript → dist/
-pnpm test         # Lance Vitest
-pnpm lint         # ESLint
-pnpm typecheck    # tsc --noEmit
+bun run build        # Compile TypeScript → dist/
+bun run test         # Lance Vitest
+bun run lint         # ESLint
+bun run typecheck    # tsc --noEmit
 ```
