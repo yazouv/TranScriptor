@@ -46,11 +46,15 @@ export class HtmlExporter extends BaseExporter {
   if (el) el.textContent = '${this.messageCount} messages';
 </script>`;
 
-    return patchScript + footer;
+    // Close the current section (main or last thread) before the transcript wrapper closes
+    return patchScript + '</div>\n' + footer;
   }
 
-  protected renderThreadSeparator(threadName: string): string {
-    return `<div class="thread-separator"><span class="thread-icon">🧵</span><span class="thread-name">${escHtml(threadName)}</span></div>\n`;
+  protected renderThreadSeparator(threadId: string, threadName: string): string {
+    // Close the previous section, open a new hidden section for this thread.
+    // The tab bar JS will add a tab button pointing to this section's id.
+    const sectionId = `section-${threadId.replace(/[^a-z0-9_-]/gi, '-')}`;
+    return `</div>\n<div id="${sectionId}" class="transcript-section hidden" data-name="${escHtml(threadName)}" role="tabpanel">\n`;
   }
 
   protected async renderMessage(

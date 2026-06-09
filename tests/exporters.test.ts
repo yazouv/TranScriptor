@@ -340,16 +340,32 @@ describe('Thread separator — MarkdownExporter', () => {
 });
 
 describe('Thread separator — HtmlExporter', () => {
-  it('renders thread-separator div with thread name', async () => {
+  it('renders one transcript-section per thread with correct data-name', async () => {
     const out = await exportThread(HtmlExporter, { ...BASE_OPTS, format: ExportFormat.HTML });
-    expect(out).toContain('class="thread-separator"');
-    expect(out).toContain('Project Discussion');
-    expect(out).toContain('Off-topic');
+    expect(out).toContain('data-name="Project Discussion"');
+    expect(out).toContain('data-name="Off-topic"');
   });
 
-  it('renders two thread separators for two threads', async () => {
+  it('renders two hidden thread sections for two threads', async () => {
     const out = await exportThread(HtmlExporter, { ...BASE_OPTS, format: ExportFormat.HTML });
-    const matches = [...out.matchAll(/class="thread-separator"/g)];
+    const matches = [...out.matchAll(/class="transcript-section hidden"/g)];
     expect(matches.length).toBe(2);
+  });
+
+  it('renders the tab bar with main channel tab', async () => {
+    const out = await exportThread(HtmlExporter, { ...BASE_OPTS, format: ExportFormat.HTML });
+    expect(out).toContain('class="tab-bar"');
+    expect(out).toContain('data-target="section-main"');
+  });
+
+  it('renders main section without hidden class', async () => {
+    const out = await exportThread(HtmlExporter, { ...BASE_OPTS, format: ExportFormat.HTML });
+    expect(out).toContain('id="section-main" class="transcript-section"');
+  });
+
+  it('contains thread messages content in their sections', async () => {
+    const out = await exportThread(HtmlExporter, { ...BASE_OPTS, format: ExportFormat.HTML });
+    expect(out).toContain('thread reply from Alice');
+    expect(out).toContain('second thread');
   });
 });

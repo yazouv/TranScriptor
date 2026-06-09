@@ -71,7 +71,7 @@ export abstract class BaseExporter implements IExporter {
     msg: NormalizedMessage,
     prev: NormalizedMessage | null,
   ): Promise<string>;
-  protected abstract renderThreadSeparator(threadName: string): string;
+  protected abstract renderThreadSeparator(threadId: string, threadName: string): string;
 
   /**
    * Exports batched messages through a PassThrough stream.
@@ -101,7 +101,7 @@ export abstract class BaseExporter implements IExporter {
       for (const msg of batch) {
         // Emit a thread separator when entering a new thread section
         if (msg.threadId !== null && msg.threadId !== currentThreadId) {
-          const sep = this.renderThreadSeparator(msg.threadName ?? msg.threadId);
+          const sep = this.renderThreadSeparator(msg.threadId, msg.threadName ?? msg.threadId);
           if (sep) stream.push(sep);
           currentThreadId = msg.threadId;
           prev = null; // Reset grouping so the first thread message gets a full header

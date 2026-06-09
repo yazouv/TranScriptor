@@ -28,7 +28,7 @@ export class TxtExporter extends BaseExporter {
     ].join('\n');
   }
 
-  protected renderThreadSeparator(threadName: string): string {
+  protected renderThreadSeparator(_threadId: string, threadName: string): string {
     return [
       '',
       '─'.repeat(60),

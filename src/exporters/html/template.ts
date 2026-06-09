@@ -75,62 +75,83 @@ a:hover { text-decoration: underline; }
 .transcript-header {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--separator);
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
   position: sticky;
   top: 0;
   z-index: 10;
 }
-.transcript-header .guild-icon {
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+}
+.guild-icon {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
-.transcript-header .channel-info { flex: 1; }
-.transcript-header .channel-name {
+.channel-info { flex: 1; min-width: 0; }
+.channel-name {
   font-size: 16px;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.transcript-header .channel-name .hash {
+.channel-name .hash {
   color: var(--text-secondary);
   font-size: 20px;
 }
-.transcript-header .guild-name {
+.guild-name {
   font-size: 12px;
   color: var(--text-secondary);
   margin-top: 2px;
 }
-.transcript-header .message-count {
+.message-count {
   font-size: 12px;
   color: var(--text-muted);
   background: var(--bg-tertiary);
   padding: 4px 10px;
   border-radius: 12px;
+  white-space: nowrap;
 }
 
-/* ── Thread separator ── */
-.thread-separator {
+/* ── Tab bar ── */
+.tab-bar {
+  display: flex;
+  border-top: 1px solid var(--separator);
+  padding: 0 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 2px;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 28px 16px 8px;
-  padding: 10px 14px;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  border-left: 4px solid var(--brand);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
+  gap: 5px;
+  transition: color 0.1s;
+  margin-bottom: -1px;
 }
-.thread-separator .thread-icon { font-size: 17px; }
-.thread-separator .thread-name { flex: 1; }
+.tab:hover { color: var(--text-primary); }
+.tab.active { color: var(--text-primary); border-bottom-color: var(--brand); }
+.tab-hash { color: var(--text-muted); font-size: 16px; }
+.tab-icon { font-size: 13px; }
+
+/* ── Transcript sections (one per tab) ── */
+.transcript-section { padding-top: 8px; }
+.transcript-section.hidden { display: none; }
 
 /* ── Day separator ── */
 .day-separator {
@@ -671,6 +692,45 @@ document.querySelectorAll('[data-goto]').forEach(el => {
     setTimeout(() => target.style.background = '', 1500);
   });
 });
+
+// ── Thread tabs ──────────────────────────────────────────────────────────────
+(function () {
+  const tabBar = document.querySelector('.tab-bar');
+  const sections = document.querySelectorAll('.transcript-section');
+  if (!tabBar || sections.length <= 1) return;
+
+  // Build one tab button per thread section
+  sections.forEach(function (section, i) {
+    if (i === 0) return; // main section already has its tab in the HTML
+    const btn = document.createElement('button');
+    btn.className = 'tab';
+    btn.dataset.target = section.id;
+    btn.innerHTML = '<span class="tab-icon">🧵</span>' + (section.dataset.name || section.id);
+    tabBar.appendChild(btn);
+  });
+
+  // Switch tab on click
+  tabBar.addEventListener('click', function (e) {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    tabBar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    sections.forEach(s => s.classList.add('hidden'));
+    btn.classList.add('active');
+    const target = document.getElementById(btn.dataset.target);
+    if (target) target.classList.remove('hidden');
+  });
+
+  // Keyboard: left/right arrow between tabs
+  tabBar.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const tabs = [...tabBar.querySelectorAll('.tab')];
+    const idx = tabs.indexOf(document.activeElement);
+    if (idx === -1) return;
+    const next = tabs[(idx + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
+    next.focus();
+    next.click();
+  });
+})();
 `;
 
 export function buildHtmlShell(
@@ -684,6 +744,8 @@ export function buildHtmlShell(
     ? `<img class="guild-icon" src="${guildIconURL}" alt="${escHtml(guildName)}" loading="lazy">`
     : `<div class="guild-icon" style="background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:18px;">💬</div>`;
 
+  // The header opens the main section div; sections are closed by the exporter
+  // (renderThreadSeparator closes the previous section, renderFooter closes the last one)
   const header = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -695,16 +757,25 @@ export function buildHtmlShell(
 <body>
 <div id="lightbox"><img src="" alt=""></div>
 <header class="transcript-header">
-  ${icon}
-  <div class="channel-info">
-    <div class="channel-name"><span class="hash">#</span>${escHtml(channelName)}</div>
-    <div class="guild-name">${escHtml(guildName)}</div>
+  <div class="header-top">
+    ${icon}
+    <div class="channel-info">
+      <div class="channel-name"><span class="hash">#</span>${escHtml(channelName)}</div>
+      <div class="guild-name">${escHtml(guildName)}</div>
+    </div>
+    <span class="message-count">${messageCount} messages</span>
   </div>
-  <span class="message-count">${messageCount} messages</span>
+  <nav class="tab-bar" role="tablist">
+    <button class="tab active" role="tab" aria-selected="true" data-target="section-main">
+      <span class="tab-hash">#</span>${escHtml(channelName)}
+    </button>
+  </nav>
 </header>
 <div class="transcript">
+<div id="section-main" class="transcript-section">
 `;
 
+  // footer only closes .transcript; the last section is closed by HtmlExporter.renderFooter
   const footer = `</div>
 <footer class="transcript-footer">${escHtml(footerText)}</footer>
 <script>${CLIENT_SCRIPT}</script>
