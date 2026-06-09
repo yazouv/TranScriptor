@@ -28,6 +28,16 @@ export class TxtExporter extends BaseExporter {
     ].join('\n');
   }
 
+  protected renderThreadSeparator(threadName: string): string {
+    return [
+      '',
+      '─'.repeat(60),
+      `  🧵 Thread: ${threadName}`,
+      '─'.repeat(60),
+      '',
+    ].join('\n');
+  }
+
   protected async renderMessage(
     msg: NormalizedMessage,
     prev: NormalizedMessage | null,

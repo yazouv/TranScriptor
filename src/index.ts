@@ -11,6 +11,15 @@ import type {
 } from './types.js';
 import { ExportFormat, OutputType, MediaStrategy } from './types.js';
 
+/** Minimal thread shape — compatible with discord.js v14 and v15 */
+export interface ThreadChannel {
+  id: string;
+  name: string;
+  messages: {
+    fetch(options: { limit: number; before?: string }): Promise<Map<string, RawMessage>>;
+  };
+}
+
 // Minimal channel interface — compatible with discord.js v14 and v15
 export interface TextChannel {
   messages: {
@@ -19,6 +28,11 @@ export interface TextChannel {
   name: string;
   id: string;
   guild?: { name: string; iconURL?: (opts: object) => string | null };
+  /** Thread manager — only present on text channels that support threads */
+  threads?: {
+    fetchActive(): Promise<{ threads: Map<string, ThreadChannel> }>;
+    fetchArchived(options?: { fetchAll?: boolean }): Promise<{ threads: Map<string, ThreadChannel> }>;
+  };
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
@@ -178,8 +192,42 @@ export async function createTranscript(
   options: TranscriptOptions,
 ): Promise<ExportResult> {
   const opts = withDefaults(options);
-  const rawStream = fetchMessages(channel, opts);
-  return runPipeline(rawStream, channel, opts);
+
+  async function* buildRawStream(): AsyncGenerator<RawMessage> {
+    yield* fetchMessages(channel, opts);
+
+    if (opts.include?.threads === true && channel.threads) {
+      const [activeResult, archivedResult] = await Promise.all([
+        channel.threads.fetchActive(),
+        channel.threads.fetchArchived({ fetchAll: true }),
+      ]);
+
+      // Deduplicate threads (active and archived sets may overlap)
+      const seen = new Set<string>();
+      const allThreads: ThreadChannel[] = [];
+      for (const thread of [
+        ...activeResult.threads.values(),
+        ...archivedResult.threads.values(),
+      ]) {
+        if (!seen.has(thread.id)) {
+          seen.add(thread.id);
+          allThreads.push(thread);
+        }
+      }
+
+      for (const thread of allThreads) {
+        for await (const msg of fetchMessages(thread, opts)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (msg as any)._threadId = thread.id;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (msg as any)._threadName = thread.name;
+          yield msg;
+        }
+      }
+    }
+  }
+
+  return runPipeline(buildRawStream(), channel, opts);
 }
 
 /**

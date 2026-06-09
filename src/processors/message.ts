@@ -192,7 +192,8 @@ export function normalizeMessage(
     stickers,
     replyTo,
     pinned: Boolean(raw.pinned),
-    threadId: raw.thread?.id ?? null,
+    threadId: raw._threadId ?? raw.thread?.id ?? null,
+    threadName: raw._threadName ?? null,
     components: raw.components ?? [],
     systemContent,
   };

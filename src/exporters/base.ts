@@ -64,13 +64,14 @@ export abstract class BaseExporter implements IExporter {
     this.options = options;
   }
 
-  // Subclasses implement these three methods
+  // Subclasses implement these methods
   protected abstract renderHeader(): string;
   protected abstract renderFooter(): string;
   protected abstract renderMessage(
     msg: NormalizedMessage,
     prev: NormalizedMessage | null,
   ): Promise<string>;
+  protected abstract renderThreadSeparator(threadName: string): string;
 
   /**
    * Exports batched messages through a PassThrough stream.
@@ -94,9 +95,18 @@ export abstract class BaseExporter implements IExporter {
     stream.push(this.renderHeader());
 
     let prev: NormalizedMessage | null = null;
+    let currentThreadId: string | null = null;
 
     for await (const batch of messages) {
       for (const msg of batch) {
+        // Emit a thread separator when entering a new thread section
+        if (msg.threadId !== null && msg.threadId !== currentThreadId) {
+          const sep = this.renderThreadSeparator(msg.threadName ?? msg.threadId);
+          if (sep) stream.push(sep);
+          currentThreadId = msg.threadId;
+          prev = null; // Reset grouping so the first thread message gets a full header
+        }
+
         const chunk = await this.renderMessage(msg, prev);
         if (chunk) stream.push(chunk);
         prev = msg;

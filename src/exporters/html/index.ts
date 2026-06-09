@@ -49,6 +49,10 @@ export class HtmlExporter extends BaseExporter {
     return patchScript + footer;
   }
 
+  protected renderThreadSeparator(threadName: string): string {
+    return `<div class="thread-separator"><span class="thread-icon">🧵</span><span class="thread-name">${escHtml(threadName)}</span></div>\n`;
+  }
+
   protected async renderMessage(
     msg: NormalizedMessage,
     prev: NormalizedMessage | null,

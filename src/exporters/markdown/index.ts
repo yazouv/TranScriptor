@@ -116,6 +116,10 @@ export class MarkdownExporter extends BaseExporter {
     ].join('\n');
   }
 
+  protected renderThreadSeparator(threadName: string): string {
+    return `\n---\n\n## 🧵 Thread: ${mdEscape(threadName)}\n\n`;
+  }
+
   protected async renderMessage(
     msg: NormalizedMessage,
     prev: NormalizedMessage | null,

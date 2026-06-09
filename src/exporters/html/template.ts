@@ -115,6 +115,23 @@ a:hover { text-decoration: underline; }
   border-radius: 12px;
 }
 
+/* ── Thread separator ── */
+.thread-separator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 28px 16px 8px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border-left: 4px solid var(--brand);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.thread-separator .thread-icon { font-size: 17px; }
+.thread-separator .thread-name { flex: 1; }
+
 /* ── Day separator ── */
 .day-separator {
   display: flex;

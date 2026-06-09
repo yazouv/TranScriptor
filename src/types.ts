@@ -56,7 +56,11 @@ export interface IncludeOptions {
   embeds?: boolean;
   /** Include stickers. Default: true */
   stickers?: boolean;
-  /** Include thread messages. Default: false */
+  /**
+   * Fetch and include messages from all threads attached to the channel.
+   * Each thread is rendered as a labeled section after the main channel messages.
+   * Default: false
+   */
   threads?: boolean;
 }
 
@@ -211,6 +215,8 @@ export interface NormalizedMessage {
   replyTo: NormalizedMessage | null;
   pinned: boolean;
   threadId: string | null;
+  /** Name of the thread this message belongs to (null for main channel messages) */
+  threadName: string | null;
   /** Discord components (buttons, menus…) — stored as-is */
   components: unknown[];
   /** For system messages: human-readable generated text */
