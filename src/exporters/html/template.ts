@@ -22,8 +22,13 @@ function minifyJs(js: string): string {
 }
 
 function compactHtml(html: string): string {
+  let previous: string;
+  do {
+    previous = html;
+    html = html.replace(/<!--[\s\S]*?-->/g, ''); // strip HTML comments
+  } while (html !== previous);
+
   return html
-    .replace(/<!--[\s\S]*?-->/g, '') // strip HTML comments
     .replace(/[ \t]+/g, ' ')         // collapse inline whitespace
     .replace(/\n\s*/g, '')           // remove newlines + indentation
     .trim();
