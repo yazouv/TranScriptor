@@ -2,7 +2,6 @@ import { createWriteStream, mkdirSync } from 'node:fs';
 import { join, extname, basename } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
-import { fetch } from 'undici';
 
 export interface DownloadResult {
   localPath: string;
