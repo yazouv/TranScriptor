@@ -18,8 +18,22 @@ let parser: ((input: string) => MarkdownNode[]) | null = null;
 async function getParser(): Promise<(input: string) => MarkdownNode[]> {
   if (parser) return parser;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mod = await import('discord-markdown-parser' as any);
-  parser = mod.default ?? mod;
+  const mod: any = await import('discord-markdown-parser' as any);
+  // Under real Node's CJS→ESM interop (unlike Bun), `mod.default` for a plain
+  // CJS module resolves to the whole `module.exports` object, not whatever
+  // property the module itself assigned to `exports.default` — so it is NOT
+  // safe to trust here. `mod.parse` is the reliable named export in both
+  // runtimes; fall back to `default`/the module itself only if it turns out
+  // to actually be a function.
+  const candidate =
+    typeof mod.parse === 'function' ? mod.parse
+      : typeof mod.default === 'function' ? mod.default
+        : typeof mod === 'function' ? mod
+          : null;
+  if (!candidate) {
+    throw new Error('discord-markdown-parser: could not resolve the parse function from the module');
+  }
+  parser = candidate;
   return parser!;
 }
 

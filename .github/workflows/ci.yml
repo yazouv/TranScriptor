@@ -36,6 +36,13 @@ jobs:
       - name: Test
         run: bun run test
 
+      # The vitest suite runs under Bun, which resolves the CJS discord-markdown-parser
+      # dependency differently than real Node does — a regression here can pass every
+      # Bun-based test while silently breaking markdown parsing for every real (Node)
+      # consumer. See scripts/node-smoke-test.mjs.
+      - name: Node smoke test
+        run: bun run test:node
+
   # Required to satisfy the branch protection status check on release-please PRs.
   # Both jobs share the same name so GitHub matches either one.
   skip-for-bots:
