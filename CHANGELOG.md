@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.7.2...transcriptor-v0.8.0) (2026-08-08)
+
+
+### Features
+
+* export parseDiscordMarkdown, stripDiscordMarkdown, createMentionResolver ([7b17d18](https://github.com/yazouv/TranScriptor/commit/7b17d1862f7b4bfcc322f123a7f3746743ec2413))
+
 ## [0.7.2](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.7.1...transcriptor-v0.7.2) (2026-08-08)
 
 
