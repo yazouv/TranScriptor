@@ -3,13 +3,17 @@ import { PassThrough } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import type { IExporter, NormalizedMessage, TranscriptOptions } from '../types.js';
+import type { IExporter, MentionResolver, NormalizedMessage, TranscriptOptions } from '../types.js';
+import { createMentionResolver } from '../processors/mentions.js';
 
-// Minimal channel shape needed by exporters
+// Minimal channel shape needed by exporters.
+// `guild` is widened with an index signature so real discord.js Guild instances
+// (with members/roles/channels caches, used for mention resolution) are accepted
+// structurally without redeclaring their full shape here.
 export interface ChannelInfo {
   id: string;
   name: string;
-  guild?: { name: string; iconURL?: (opts: object) => string | null };
+  guild?: { name: string; iconURL?: (opts: object) => string | null } & Record<string, unknown>;
 }
 
 // ─── Format helpers ───────────────────────────────────────────────────────────
@@ -58,10 +62,13 @@ export abstract class BaseExporter implements IExporter {
   protected channel: ChannelInfo;
   protected options: TranscriptOptions;
   protected messageCount = 0;
+  /** Resolves user/role/channel mentions to display names. Null when no guild is available. */
+  protected resolver: MentionResolver | null;
 
   constructor(channel: ChannelInfo, options: TranscriptOptions) {
     this.channel = channel;
     this.options = options;
+    this.resolver = createMentionResolver(channel.guild);
   }
 
   // Subclasses implement these methods

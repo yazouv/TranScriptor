@@ -1,6 +1,8 @@
 // discord-markdown-parser uses CommonJS — dynamic import handles ESM interop
 // We wrap it here so the rest of the codebase stays clean
 
+import type { MentionResolver } from '../types.js';
+
 interface MarkdownNode {
   type: string;
   content?: string | MarkdownNode[];
@@ -23,14 +25,30 @@ async function getParser(): Promise<(input: string) => MarkdownNode[]> {
 
 // ─── Node → plain text ────────────────────────────────────────────────────────
 
-function nodeToText(node: MarkdownNode): string {
+function nodeToText(node: MarkdownNode, resolver?: MentionResolver | null): string {
+  switch (node.type) {
+    // discord-markdown-parser's parserFor() names nodes after the rule key:
+    // 'user' / 'role' / 'channel' — not '...Mention'.
+    case 'user':
+      return `@${resolver?.user(String(node.id)) ?? node.id ?? 'unknown'}`;
+    case 'role':
+      return `@${resolver?.role(String(node.id)) ?? node.id ?? 'unknown'}`;
+    case 'channel':
+      return `#${resolver?.channel(String(node.id)) ?? node.id ?? 'unknown'}`;
+    case 'everyone':
+      return '@everyone';
+    case 'here':
+      return '@here';
+    default:
+      break;
+  }
   if (typeof node.content === 'string') return node.content;
-  if (Array.isArray(node.content)) return node.content.map(nodeToText).join('');
+  if (Array.isArray(node.content)) return node.content.map((n) => nodeToText(n, resolver)).join('');
   return '';
 }
 
-function nodesToText(nodes: MarkdownNode[]): string {
-  return nodes.map(nodeToText).join('');
+function nodesToText(nodes: MarkdownNode[], resolver?: MentionResolver | null): string {
+  return nodes.map((n) => nodeToText(n, resolver)).join('');
 }
 
 // ─── Node → HTML ──────────────────────────────────────────────────────────────
@@ -49,7 +67,7 @@ function escape(text: string): string {
  * into a single <a> element, since discord-markdown-parser doesn't produce
  * a unified link node for Discord's [text](url) format.
  */
-function renderNodes(nodes: MarkdownNode[]): string {
+function renderNodes(nodes: MarkdownNode[], resolver?: MentionResolver | null): string {
   const out: string[] = [];
   let i = 0;
   while (i < nodes.length) {
@@ -77,15 +95,15 @@ function renderNodes(nodes: MarkdownNode[]): string {
       i += 5;
       continue;
     }
-    if (n0 !== undefined) out.push(nodeToHTML(n0));
+    if (n0 !== undefined) out.push(nodeToHTML(n0, resolver));
     i++;
   }
   return out.join('');
 }
 
-function nodeToHTML(node: MarkdownNode): string {
+function nodeToHTML(node: MarkdownNode, resolver?: MentionResolver | null): string {
   const inner = Array.isArray(node.content)
-    ? renderNodes(node.content)
+    ? renderNodes(node.content, resolver)
     : escape(String(node.content ?? ''));
 
   switch (node.type) {
@@ -148,15 +166,22 @@ function nodeToHTML(node: MarkdownNode): string {
     case 'newline':
       return '<br>';
 
-    // Discord mentions
-    case 'userMention':
-      return `<span class="mention">@${escape(String(node.id ?? 'unknown'))}</span>`;
+    // Discord mentions — discord-markdown-parser names these 'user' / 'role' / 'channel'
+    // (the rule's key in its `rules` object), not '...Mention'.
+    case 'user': {
+      const name = resolver?.user(String(node.id)) ?? node.id ?? 'unknown';
+      return `<span class="mention">@${escape(String(name))}</span>`;
+    }
 
-    case 'roleMention':
-      return `<span class="mention role-mention">@${escape(String(node.id ?? 'unknown'))}</span>`;
+    case 'role': {
+      const name = resolver?.role(String(node.id)) ?? node.id ?? 'unknown';
+      return `<span class="mention role-mention">@${escape(String(name))}</span>`;
+    }
 
-    case 'channelMention':
-      return `<span class="mention">#${escape(String(node.id ?? 'unknown'))}</span>`;
+    case 'channel': {
+      const name = resolver?.channel(String(node.id)) ?? node.id ?? 'unknown';
+      return `<span class="mention">#${escape(String(name))}</span>`;
+    }
 
     case 'everyone':
       return `<span class="mention">@everyone</span>`;
@@ -194,13 +219,16 @@ function nodeToHTML(node: MarkdownNode): string {
  * Parses Discord markdown content and returns an HTML string.
  * Uses discord-markdown-parser under the hood.
  */
-export async function parseDiscordMarkdown(content: string): Promise<string> {
+export async function parseDiscordMarkdown(
+  content: string,
+  resolver?: MentionResolver | null,
+): Promise<string> {
   if (!content.trim()) return '';
 
   try {
     const parse = await getParser();
     const nodes = parse(content);
-    return renderNodes(nodes);
+    return renderNodes(nodes, resolver);
   } catch {
     // If parsing fails for any reason, return escaped plain text
     return escape(content);
@@ -209,15 +237,18 @@ export async function parseDiscordMarkdown(content: string): Promise<string> {
 
 /**
  * Strips Discord markdown and returns plain text.
- * Used by TXT exporter.
+ * Used by TXT/Markdown exporters.
  */
-export async function stripDiscordMarkdown(content: string): Promise<string> {
+export async function stripDiscordMarkdown(
+  content: string,
+  resolver?: MentionResolver | null,
+): Promise<string> {
   if (!content.trim()) return content;
 
   try {
     const parse = await getParser();
     const nodes = parse(content);
-    return nodesToText(nodes);
+    return nodesToText(nodes, resolver);
   } catch {
     return content;
   }

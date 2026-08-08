@@ -103,21 +103,26 @@ describe('parseDiscordMarkdown — links and headings', () => {
 
 // ─── Mentions ─────────────────────────────────────────────────────────────────
 
+// Real Discord snowflakes are 17-20 digits — the parser's mention regexes require that
+// length, so short fake IDs like "123456789" never actually match the mention rules.
+const USER_ID = '391597830932004864';
+const ROLE_ID = '899971181170544640';
+const CHANNEL_ID = '111222333444555666';
+
 describe('parseDiscordMarkdown — mentions', () => {
-  it('renders user mention', async () => {
-    const out = await parseDiscordMarkdown('<@123456789>');
-    // Parser may produce a mention span or escape as HTML entities — either is safe output
-    expect(out).toContain('123456789');
+  it('renders user mention as a mention span with the raw ID when unresolved', async () => {
+    const out = await parseDiscordMarkdown(`<@${USER_ID}>`);
+    expect(out).toBe(`<span class="mention">@${USER_ID}</span>`);
   });
 
-  it('renders role mention', async () => {
-    const out = await parseDiscordMarkdown('<@&987654321>');
-    expect(out).toContain('987654321');
+  it('renders role mention as a mention span with the raw ID when unresolved', async () => {
+    const out = await parseDiscordMarkdown(`<@&${ROLE_ID}>`);
+    expect(out).toBe(`<span class="mention role-mention">@${ROLE_ID}</span>`);
   });
 
-  it('renders channel mention', async () => {
-    const out = await parseDiscordMarkdown('<#111222333>');
-    expect(out).toContain('111222333');
+  it('renders channel mention as a mention span with the raw ID when unresolved', async () => {
+    const out = await parseDiscordMarkdown(`<#${CHANNEL_ID}>`);
+    expect(out).toBe(`<span class="mention">#${CHANNEL_ID}</span>`);
   });
 
   it('renders @everyone', async () => {
@@ -130,6 +135,22 @@ describe('parseDiscordMarkdown — mentions', () => {
     const out = await parseDiscordMarkdown('@here');
     expect(out).toContain('@here');
     expect(out).toContain('mention');
+  });
+
+  it('resolves user/role/channel mentions to display names via the resolver', async () => {
+    const resolver = {
+      user: (id: string) => (id === USER_ID ? 'Yazouv' : null),
+      role: (id: string) => (id === ROLE_ID ? 'DOA' : null),
+      channel: (id: string) => (id === CHANNEL_ID ? 'general' : null),
+    };
+    expect(await parseDiscordMarkdown(`<@${USER_ID}>`, resolver)).toContain('@Yazouv');
+    expect(await parseDiscordMarkdown(`<@&${ROLE_ID}>`, resolver)).toContain('@DOA');
+    expect(await parseDiscordMarkdown(`<#${CHANNEL_ID}>`, resolver)).toContain('#general');
+  });
+
+  it('falls back to the raw ID when the resolver has no match', async () => {
+    const resolver = { user: () => null, role: () => null, channel: () => null };
+    expect(await parseDiscordMarkdown(`<@${USER_ID}>`, resolver)).toContain(USER_ID);
   });
 });
 

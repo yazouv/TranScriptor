@@ -165,13 +165,13 @@ export class MarkdownExporter extends BaseExporter {
 
     // Content
     if (msg.content) {
-      const plain = await stripDiscordMarkdown(msg.content);
+      const plain = await stripDiscordMarkdown(msg.content, this.resolver);
       lines.push(plain);
     }
 
     // Components v2
     if (msg.components.length > 0) {
-      const parts = await Promise.all((msg.components as unknown[]).map((c) => renderComponentText(c)));
+      const parts = await Promise.all((msg.components as unknown[]).map((c) => renderComponentText(c, this.resolver)));
       const text = parts.join('\n').trim();
       if (text) lines.push(text);
     }

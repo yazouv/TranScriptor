@@ -4,6 +4,7 @@ import { parseDiscordMarkdown } from '../../processors/markdown.js';
 import { renderComponentHtml } from '../../processors/component.js';
 import { AttachmentType, MessageType } from '../../types.js';
 import type {
+  MentionResolver,
   NormalizedAttachment,
   NormalizedEmbed,
   NormalizedMessage,
@@ -72,7 +73,7 @@ function renderAttachment(att: NormalizedAttachment, strategy: string | undefine
 
 // ─── Embed renderer ───────────────────────────────────────────────────────────
 
-function renderEmbed(embed: NormalizedEmbed): string {
+async function renderEmbed(embed: NormalizedEmbed, resolver?: MentionResolver | null): Promise<string> {
   const colorStyle = embed.color
     ? ` style="border-left-color:#${embed.color.toString(16).padStart(6, '0')}"`
     : '';
@@ -95,16 +96,16 @@ function renderEmbed(embed: NormalizedEmbed): string {
     : '';
 
   const description = embed.description
-    ? `<div class="embed-description">${escHtml(embed.description)}</div>`
+    ? `<div class="embed-description">${await parseDiscordMarkdown(embed.description, resolver)}</div>`
     : '';
 
   const fields = embed.fields.length > 0
-    ? `<div class="embed-fields">${embed.fields.map((f) =>
+    ? `<div class="embed-fields">${(await Promise.all(embed.fields.map(async (f) =>
         `<div class="embed-field${f.inline ? ' inline' : ''}">
           <div class="embed-field-name">${escHtml(f.name)}</div>
-          <div class="embed-field-value">${escHtml(f.value)}</div>
+          <div class="embed-field-value">${await parseDiscordMarkdown(f.value, resolver)}</div>
         </div>`
-      ).join('')}</div>`
+      ))).join('')}</div>`
     : '';
 
   const image = embed.image
@@ -232,6 +233,7 @@ export async function renderMessageHtml(
   msg: NormalizedMessage,
   prev: NormalizedMessage | null,
   options: TranscriptOptions,
+  resolver?: MentionResolver | null,
 ): Promise<string> {
   const strategy = options.media?.strategy;
 
@@ -281,7 +283,7 @@ export async function renderMessageHtml(
   // Content
   let contentHtml = '';
   if (msg.content) {
-    const parsed = await parseDiscordMarkdown(msg.content);
+    const parsed = await parseDiscordMarkdown(msg.content, resolver);
     const emojiOnlyClass = isEmojiOnly(msg.content) ? ' emoji-only' : '';
     contentHtml = `<div class="message-content${emojiOnlyClass}">${parsed}</div>`;
   }
@@ -298,7 +300,7 @@ export async function renderMessageHtml(
 
   // Embeds
   const embedsHtml = options.include?.embeds !== false && msg.embeds.length > 0
-    ? `<div class="embeds">${msg.embeds.map(renderEmbed).join('')}</div>`
+    ? `<div class="embeds">${(await Promise.all(msg.embeds.map((e) => renderEmbed(e, resolver)))).join('')}</div>`
     : '';
 
   // Reactions
@@ -308,7 +310,7 @@ export async function renderMessageHtml(
 
   // Components v2 (IsComponentsV2 flag — content/embeds empty, layout is in components)
   const componentsHtml = msg.components.length > 0
-    ? (await Promise.all((msg.components as unknown[]).map((c) => renderComponentHtml(c)))).join('')
+    ? (await Promise.all((msg.components as unknown[]).map((c) => renderComponentHtml(c, resolver)))).join('')
     : '';
 
   return `<div class="message-group${continuation ? ' continuation' : ''}" id="msg-${escHtml(msg.id)}">

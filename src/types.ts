@@ -81,6 +81,13 @@ export interface MediaOptions {
   zip?: boolean;
 }
 
+/** Resolves mention IDs to display names. Built from the guild caches when available. */
+export interface MentionResolver {
+  user(id: string): string | null;
+  role(id: string): string | null;
+  channel(id: string): string | null;
+}
+
 export interface ProgressEvent {
   processed: number;
   total: number | null;

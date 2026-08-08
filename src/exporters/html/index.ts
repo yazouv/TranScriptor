@@ -68,7 +68,7 @@ export class HtmlExporter extends BaseExporter {
       parts.push(`<div class="day-separator">${escHtml(formatDateShort(msg.timestamp))}</div>`);
     }
 
-    parts.push(await renderMessageHtml(msg, prev, this.options));
+    parts.push(await renderMessageHtml(msg, prev, this.options, this.resolver));
 
     return parts.join('\n');
   }

@@ -72,7 +72,7 @@ export class TxtExporter extends BaseExporter {
 
     // Content
     if (msg.content) {
-      const plain = await stripDiscordMarkdown(msg.content);
+      const plain = await stripDiscordMarkdown(msg.content, this.resolver);
       // Indent continuation lines
       const indented = plain
         .split('\n')

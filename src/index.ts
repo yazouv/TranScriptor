@@ -27,7 +27,7 @@ export interface TextChannel {
   };
   name: string;
   id: string;
-  guild?: { name: string; iconURL?: (opts: object) => string | null };
+  guild?: { name: string; iconURL?: (opts: object) => string | null } & Record<string, unknown>;
   /** Thread manager — only present on text channels that support threads */
   threads?: {
     fetchActive(): Promise<{ threads: Map<string, ThreadChannel> }>;

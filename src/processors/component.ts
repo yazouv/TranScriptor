@@ -16,6 +16,7 @@
  */
 
 import { parseDiscordMarkdown, stripDiscordMarkdown } from './markdown.js';
+import type { MentionResolver } from '../types.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RawComponent = any;
@@ -30,8 +31,8 @@ function escHtmlComp(str: string): string {
 
 // ─── Individual type renderers ────────────────────────────────────────────────
 
-async function renderTextDisplay(c: RawComponent): Promise<string> {
-  const html = await parseDiscordMarkdown(String(c.content ?? ''));
+async function renderTextDisplay(c: RawComponent, resolver?: MentionResolver | null): Promise<string> {
+  const html = await parseDiscordMarkdown(String(c.content ?? ''), resolver);
   return `<div class="comp-text">${html}</div>`;
 }
 
@@ -106,7 +107,7 @@ async function renderActionRow(c: RawComponent): Promise<string> {
 
 // ─── Recursive async renderer ─────────────────────────────────────────────────
 
-export async function renderComponentHtml(c: RawComponent): Promise<string> {
+export async function renderComponentHtml(c: RawComponent, resolver?: MentionResolver | null): Promise<string> {
   const type = Number(c.type ?? 0);
 
   switch (type) {
@@ -114,14 +115,14 @@ export async function renderComponentHtml(c: RawComponent): Promise<string> {
     case 2:  return renderButton(c);
     case 9: {
       const children: RawComponent[] = Array.isArray(c.components) ? c.components : [];
-      const childHtml = (await Promise.all(children.map(renderComponentHtml))).join('');
-      const accessoryHtml = c.accessory ? await renderComponentHtml(c.accessory) : '';
+      const childHtml = (await Promise.all(children.map((child) => renderComponentHtml(child, resolver)))).join('');
+      const accessoryHtml = c.accessory ? await renderComponentHtml(c.accessory, resolver) : '';
       return `<div class="comp-section">
         <div class="comp-section-body">${childHtml}</div>
         ${accessoryHtml ? `<div class="comp-section-accessory">${accessoryHtml}</div>` : ''}
       </div>`;
     }
-    case 10: return renderTextDisplay(c);
+    case 10: return renderTextDisplay(c, resolver);
     case 11: return renderThumbnail(c);
     case 12: return renderMediaGallery(c);
     case 13: return renderFile(c);
@@ -131,19 +132,19 @@ export async function renderComponentHtml(c: RawComponent): Promise<string> {
         ? ` style="border-left-color:#${Number(c.accent_color).toString(16).padStart(6, '0')}"`
         : '';
       const children: RawComponent[] = Array.isArray(c.components) ? c.components : [];
-      const childHtml = (await Promise.all(children.map(renderComponentHtml))).join('');
+      const childHtml = (await Promise.all(children.map((child) => renderComponentHtml(child, resolver)))).join('');
       return `<div class="comp-container"${accent}>${childHtml}</div>`;
     }
     default: {
       const children: RawComponent[] = Array.isArray(c.components) ? c.components : [];
-      return (await Promise.all(children.map(renderComponentHtml))).join('');
+      return (await Promise.all(children.map((child) => renderComponentHtml(child, resolver)))).join('');
     }
   }
 }
 
 // ─── Plain-text renderer (for Markdown / TXT exporters) ──────────────────────
 
-export async function renderComponentText(c: RawComponent): Promise<string> {
+export async function renderComponentText(c: RawComponent, resolver?: MentionResolver | null): Promise<string> {
   const type = Number(c.type ?? 0);
 
   switch (type) {
@@ -153,9 +154,9 @@ export async function renderComponentText(c: RawComponent): Promise<string> {
     }
     case 9: {
       const children: RawComponent[] = Array.isArray(c.components) ? c.components : [];
-      return (await Promise.all(children.map(renderComponentText))).join('\n');
+      return (await Promise.all(children.map((child) => renderComponentText(child, resolver)))).join('\n');
     }
-    case 10: return stripDiscordMarkdown(String(c.content ?? ''));
+    case 10: return stripDiscordMarkdown(String(c.content ?? ''), resolver);
     case 11: return `[image: ${c.media?.url ?? ''}]`;
     case 12: {
       const items: RawComponent[] = Array.isArray(c.items) ? c.items : [];
@@ -165,11 +166,11 @@ export async function renderComponentText(c: RawComponent): Promise<string> {
     case 14: return c.divider !== false ? '---' : '';
     case 17: {
       const children: RawComponent[] = Array.isArray(c.components) ? c.components : [];
-      return (await Promise.all(children.map(renderComponentText))).join('\n');
+      return (await Promise.all(children.map((child) => renderComponentText(child, resolver)))).join('\n');
     }
     default: {
       const children: RawComponent[] = Array.isArray(c.components) ? c.components : [];
-      return (await Promise.all(children.map(renderComponentText))).join('\n');
+      return (await Promise.all(children.map((child) => renderComponentText(child, resolver)))).join('\n');
     }
   }
 }
