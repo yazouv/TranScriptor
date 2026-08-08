@@ -158,8 +158,9 @@ export class MarkdownExporter extends BaseExporter {
 
     // Reply reference
     if (msg.replyTo) {
-      const preview = msg.replyTo.content.slice(0, 100);
-      const ellipsis = msg.replyTo.content.length > 100 ? '…' : '';
+      const replyPlain = await stripDiscordMarkdown(msg.replyTo.content, this.resolver);
+      const preview = replyPlain.slice(0, 100);
+      const ellipsis = replyPlain.length > 100 ? '…' : '';
       lines.push(`> ↩ **${mdEscape(msg.replyTo.author.displayName)}**: ${mdEscape(preview)}${ellipsis}`);
     }
 

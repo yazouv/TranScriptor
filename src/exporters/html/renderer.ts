@@ -1,6 +1,6 @@
 import { escHtml } from './template.js';
 import { formatBytes, formatDate, formatDateShort } from '../base.js';
-import { parseDiscordMarkdown } from '../../processors/markdown.js';
+import { parseDiscordMarkdown, stripDiscordMarkdown } from '../../processors/markdown.js';
 import { renderComponentHtml } from '../../processors/component.js';
 import { AttachmentType, MessageType } from '../../types.js';
 import type {
@@ -179,11 +179,15 @@ function renderSticker(sticker: NormalizedSticker, strategy: string | undefined)
 
 // ─── Reply bar renderer ───────────────────────────────────────────────────────
 
-function renderReplyBar(reply: NormalizedMessage): string {
+async function renderReplyBar(reply: NormalizedMessage, resolver?: MentionResolver | null): Promise<string> {
   const avatarSrc = reply.author.avatarURL
     ? `<img class="reply-avatar" src="${escHtml(reply.author.avatarURL)}" alt="" loading="lazy">`
     : '';
-  const preview = escHtml(reply.content.slice(0, 100)) + (reply.content.length > 100 ? '…' : '');
+  // Resolve mentions (and strip markdown syntax, matching Discord's own compact reply
+  // preview) on the FULL content first, then truncate — slicing raw markdown first can
+  // cut a `<@id>` or `**bold**` marker in half and mangle the parse.
+  const plain = await stripDiscordMarkdown(reply.content, resolver);
+  const preview = escHtml(plain.slice(0, 100)) + (plain.length > 100 ? '…' : '');
 
   return `<div class="reply-bar">
     ${avatarSrc}
@@ -278,7 +282,7 @@ export async function renderMessageHtml(
     : '';
 
   // Reply
-  const replyHtml = msg.replyTo ? renderReplyBar(msg.replyTo) : '';
+  const replyHtml = msg.replyTo ? await renderReplyBar(msg.replyTo, resolver) : '';
 
   // Content
   let contentHtml = '';

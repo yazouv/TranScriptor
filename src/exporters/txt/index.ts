@@ -65,8 +65,9 @@ export class TxtExporter extends BaseExporter {
 
     // Reply reference
     if (msg.replyTo) {
-      const replyPreview = msg.replyTo.content.slice(0, 80);
-      const ellipsis = msg.replyTo.content.length > 80 ? '…' : '';
+      const replyPlain = await stripDiscordMarkdown(msg.replyTo.content, this.resolver);
+      const replyPreview = replyPlain.slice(0, 80);
+      const ellipsis = replyPlain.length > 80 ? '…' : '';
       lines.push(`  ↩ Replying to ${msg.replyTo.author.displayName}: ${replyPreview}${ellipsis}`);
     }
 
