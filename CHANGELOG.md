@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.7.0...transcriptor-v0.7.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* mentions (user/role/channel) silently disappearing from output ([e5bfdad](https://github.com/yazouv/TranScriptor/commit/e5bfdadef6d986c1a0cecd3e2781212c6891d733))
+
 ## [0.7.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.6.0...transcriptor-v0.7.0) (2026-06-09)
 
 
