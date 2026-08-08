@@ -273,4 +273,11 @@ export type {
   ExportResult,
   MediaManifest,
   ProgressEvent,
+  MentionResolver,
 } from './types.js';
+
+// Exposed for consumers that need to re-render Discord markdown outside of a full
+// createTranscript() run — e.g. reprocessing previously-exported transcripts after
+// a parser fix, without needing the original Discord channel/messages anymore.
+export { parseDiscordMarkdown, stripDiscordMarkdown } from './processors/markdown.js';
+export { createMentionResolver } from './processors/mentions.js';
