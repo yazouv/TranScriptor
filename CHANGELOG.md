@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.7.1...transcriptor-v0.7.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* markdown parsing completely broken under real Node (only worked under Bun) ([7c9ba7a](https://github.com/yazouv/TranScriptor/commit/7c9ba7adce6abd06d5fe01a21c2ad97df89e0d9c))
+
 ## [0.7.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.7.0...transcriptor-v0.7.1) (2026-08-08)
 
 
