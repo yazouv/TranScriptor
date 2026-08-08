@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.8.0...transcriptor-v0.8.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* resolve mentions in reply-preview snippets (all 3 formats) ([2f6a246](https://github.com/yazouv/TranScriptor/commit/2f6a2468a8c26a33569727ebd183efca788129e7))
+
 ## [0.8.0](https://github.com/yazouv/TranScriptor/compare/transcriptor-v0.7.2...transcriptor-v0.8.0) (2026-08-08)
 
 
